@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeoDueDiligence — Land Intelligence & Due Diligence Portal (VMRDA 2041)</title>
+  
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .map-container { height: calc(100vh - 165px); }
+    /* Dark theme for Leaflet Control Layers */
+    .leaflet-control-layers {
+      background: rgba(15, 23, 42, 0.92) !important;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(51, 65, 85, 0.8) !important;
+      color: #e2e8f0 !important;
+      border-radius: 12px !important;
+      padding: 8px 12px !important;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+      font-size: 11px !important;
+      font-family: inherit;
+    }
+    .leaflet-control-layers-separator {
+      border-top: 1px solid rgba(51, 65, 85, 0.6) !important;
+    }
+    .leaflet-control-layers label {
+      cursor: pointer;
+      margin-bottom: 3px;
+    }
+    .leaflet-control-layers-toggle {
+      background-size: 20px 20px !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur px-6 py-3.5 flex items-center justify-between sticky top-0 z-50">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+        <i data-lucide="shield-check" class="w-6 h-6 text-white"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-lg font-bold text-white tracking-tight">GeoDueDiligence</h1>
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">B2B SaaS</span>
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">VMRDA 2041 Live</span>
+        </div>
+        <p class="text-xs text-slate-400">Visakhapatnam Metropolitan Region Land Intelligence & Autonomous Due Diligence</p>
+      </div>
+    </div>
+
+    <!-- Quick Stats & Status -->
+    <div class="hidden md:flex items-center gap-6 text-xs text-slate-400">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>Coverage: <b>7,328 km²</b></span>
+      </div>
+      <div class="border-l border-slate-800 pl-4">
+        <span>Survey Parcels: <b class="text-slate-200">33,322</b></span>
+      </div>
+      <div class="border-l border-slate-800 pl-4">
+        <span>Master Plan: <b class="text-slate-200">2041 Map 4</b></span>
+      </div>
+      <a href="/docs" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition flex items-center gap-1.5">
+        <i data-lucide="code" class="w-3.5 h-3.5"></i> API Docs
+      </a>
+    </div>
+  </header>
+
+  <!-- Query & Filter Toolbar -->
+  <section class="bg-slate-950 border-b border-slate-800 px-6 py-3">
+    <div class="flex flex-wrap items-center gap-3">
+      <!-- District -->
+      <div class="flex flex-col">
+        <label class="text-[10px] font-semibold uppercase text-slate-400 mb-1">District</label>
+        <select id="districtSelect" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500">
+          <option value="Visakhapatnam">Visakhapatnam</option>
+          <option value="Vizianagaram">Vizianagaram</option>
+          <option value="Anakapalli">Anakapalli</option>
+        </select>
+      </div>
+
+      <!-- Mandal -->
+      <div class="flex flex-col">
+        <label class="text-[10px] font-semibold uppercase text-slate-400 mb-1">Mandal</label>
+        <select id="mandalSelect" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500">
+          <option value="Anandapuram">Anandapuram</option>
+          <option value="Bheemunipatnam">Bheemunipatnam</option>
+          <option value="Bhogapuram">Bhogapuram</option>
+          <option value="Padmanabham">Padmanabham</option>
+        </select>
+      </div>
+
+      <!-- Village -->
+      <div class="flex flex-col min-w-[160px]">
+        <label class="text-[10px] font-semibold uppercase text-slate-400 mb-1">Village Name</label>
+        <select id="villageSelect" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500">
+          <option value="">Loading villages...</option>
+        </select>
+      </div>
+
+      <!-- Survey Number -->
+      <div class="flex flex-col min-w-[140px]">
+        <label class="text-[10px] font-semibold uppercase text-slate-400 mb-1">Survey Number</label>
+        <div class="relative">
+          <input id="surveyInput" type="text" placeholder="e.g. 72" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500" />
+          <div id="surveyDropdown" class="hidden absolute top-full left-0 right-0 bg-slate-800 border border-slate-700 rounded-lg mt-1 max-h-48 overflow-y-auto z-50 text-xs shadow-xl"></div>
+        </div>
+      </div>
+
+      <!-- Verify Button -->
+      <div class="flex items-end pt-4">
+        <button id="verifyBtn" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs px-5 py-2 rounded-lg transition shadow-lg shadow-blue-600/30 flex items-center gap-1.5">
+          <i data-lucide="search" class="w-3.5 h-3.5"></i>
+          <span>Verify Parcel</span>
+        </button>
+      </div>
+
+      <!-- Quick Test Shortcuts -->
+      <div class="flex items-end gap-2 ml-auto pt-4 text-xs text-slate-400">
+        <span class="text-[11px] font-medium mr-1">Demo Scenarios:</span>
+        <button onclick="loadScenario('Tarluvada', '72')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/20">
+          ✓ Clean LP 72
+        </button>
+        <button onclick="loadScenario('Tarluvada', '81')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-rose-400 border border-rose-500/20">
+          ✕ Prohibited 22A 81
+        </button>
+        <button onclick="loadScenario('Tarluvada', '64')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/20">
+          ⚠ Unauthorized 64
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Workstation Layout -->
+  <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+    
+    <!-- Left: Interactive Spatial Map (7 Cols) -->
+    <div class="lg:col-span-7 relative bg-slate-950 border-r border-slate-800 map-container">
+      <div id="map" class="w-full h-full"></div>
+
+      <!-- Quick Basemap Switcher Toolbar -->
+      <div class="absolute top-4 right-14 z-[400] bg-slate-900/95 backdrop-blur border border-slate-700/80 rounded-xl p-1 shadow-2xl flex items-center gap-1 text-xs">
+        <button onclick="setBaseMap('satellite')" id="bm-satellite" class="px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 font-medium transition text-slate-300 hover:text-white hover:bg-slate-800">
+          <i data-lucide="satellite" class="w-3.5 h-3.5 text-blue-400"></i>
+          <span>Satellite</span>
+        </button>
+        <button onclick="setBaseMap('osm')" id="bm-osm" class="px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 font-medium transition text-slate-300 hover:text-white hover:bg-slate-800">
+          <i data-lucide="map" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span>OSM</span>
+        </button>
+        <button onclick="setBaseMap('topo')" id="bm-topo" class="px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 font-medium transition text-slate-300 hover:text-white hover:bg-slate-800">
+          <i data-lucide="mountain" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>Terrain</span>
+        </button>
+        <button onclick="setBaseMap('streets')" id="bm-streets" class="px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 font-medium transition bg-blue-600 text-white shadow">
+          <i data-lucide="navigation" class="w-3.5 h-3.5"></i>
+          <span>Street</span>
+        </button>
+        <button onclick="setBaseMap('dark')" id="bm-dark" class="px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 font-medium transition text-slate-300 hover:text-white hover:bg-slate-800">
+          <i data-lucide="moon" class="w-3.5 h-3.5 text-indigo-400"></i>
+          <span>Dark</span>
+        </button>
+      </div>
+
+      <!-- Map Overlay Floating Badge -->
+      <div class="absolute top-4 left-4 z-[400] bg-slate-900/90 backdrop-blur border border-slate-700/80 rounded-xl p-3 shadow-2xl max-w-xs">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-bold text-white flex items-center gap-1.5">
+            <i data-lucide="layers" class="w-3.5 h-3.5 text-blue-400"></i> Active Geospatial Layers
+          </span>
+          <span class="text-[10px] text-blue-400 font-mono">EPSG:4326</span>
+        </div>
+        <div class="space-y-1 text-[11px] text-slate-300">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded bg-amber-400"></span>
+            <span>VMRDA 2041 Residential / Mixed</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded bg-emerald-500"></span>
+            <span>Agricultural / Green Belt</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded bg-cyan-400"></span>
+            <span>30m Waterbody Buffer</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Due Diligence Report & Risk Breakdown (5 Cols) -->
+    <div class="lg:col-span-5 bg-slate-900 overflow-y-auto map-container p-6 flex flex-col justify-between">
+      
+      <div id="reportContainer">
+        <!-- Initial Blank State -->
+        <div id="emptyState" class="py-20 text-center text-slate-400">
+          <div class="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center mx-auto mb-4 border border-slate-700">
+            <i data-lucide="map-pin" class="w-8 h-8 text-blue-400"></i>
+          </div>
+          <h3 class="text-base font-bold text-white mb-1">Enter a Village & Survey Number</h3>
+          <p class="text-xs max-w-sm mx-auto text-slate-400">Select any village from the top dropdown or click one of the demo scenarios to run the real-time 4-pillar spatial due diligence audit.</p>
+        </div>
+
+        <!-- Loaded Report Content -->
+        <div id="reportContent" class="hidden space-y-5">
+          
+          <!-- Executive Score Header -->
+          <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+            <div id="gradeGlow" class="absolute -top-12 -right-12 w-36 h-36 rounded-full blur-3xl opacity-20 bg-emerald-500"></div>
+
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="text-[11px] font-mono text-slate-400" id="reportIdLabel">REPORT #GDD-20261115-XXXX</div>
+                <h2 class="text-xl font-extrabold text-white mt-0.5" id="parcelTitleLabel">Tarluvada, Sy No. 72</h2>
+                <div class="text-xs text-slate-400 mt-0.5" id="reportTimestampLabel">2026-11-15 16:40:00 UTC</div>
+              </div>
+              
+              <!-- Grade Badge -->
+              <div class="text-center px-4 py-2 rounded-xl border bg-slate-900 shadow-inner" id="gradeBadgeContainer">
+                <div class="text-2xl font-black" id="riskGradeLabel">A+</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase">Risk Grade</div>
+              </div>
+            </div>
+
+            <!-- Risk Meter -->
+            <div class="mt-4 pt-3 border-t border-slate-800">
+              <div class="flex items-center justify-between text-xs mb-1.5">
+                <span class="font-bold text-slate-300">Composite Risk Score:</span>
+                <span class="font-extrabold font-mono" id="riskScoreLabel">8.3 / 100</span>
+              </div>
+              <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                <div id="riskProgressBar" class="h-full bg-emerald-500 transition-all duration-700" style="width: 8.3%"></div>
+              </div>
+            </div>
+
+            <!-- Status Banner -->
+            <div class="mt-4 p-3 rounded-xl border text-xs" id="statusBanner">
+              <div class="font-bold flex items-center gap-1.5" id="statusHeading">
+                <i data-lucide="check-circle" class="w-4 h-4"></i> SAFE TO ACQUIRE / PRIME ASSET
+              </div>
+              <p class="text-slate-300 mt-1 text-[11px]" id="statusVerdict">Clear title, compliant VMRDA 2041 zoning, and no municipal or environmental encumbrances detected.</p>
+            </div>
+          </div>
+
+          <!-- Red Flags Box (Conditional) -->
+          <div id="redFlagsBox" class="hidden bg-rose-950/40 border border-rose-800/80 rounded-xl p-4 text-xs text-rose-300">
+            <div class="font-bold text-rose-200 flex items-center gap-1.5 mb-2">
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400"></i> Critical Risk Alerts & Violations
+            </div>
+            <ul id="redFlagsList" class="space-y-1 list-disc pl-4 text-[11px]"></ul>
+          </div>
+
+          <!-- Positive Indicators Box -->
+          <div id="positiveBox" class="bg-emerald-950/30 border border-emerald-800/60 rounded-xl p-4 text-xs text-emerald-300">
+            <div class="font-bold text-emerald-200 flex items-center gap-1.5 mb-2">
+              <i data-lucide="shield" class="w-4 h-4 text-emerald-400"></i> Key Statutory Clearances
+            </div>
+            <ul id="positiveList" class="space-y-1 list-disc pl-4 text-[11px]"></ul>
+          </div>
+
+          <!-- Interactive Tabbed Audit Breakdown -->
+          <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+            <!-- Tabs -->
+            <div class="flex items-center gap-2 border-b border-slate-800 pb-2 mb-4 text-xs">
+              <button onclick="switchTab('zoningTab')" id="tabBtn-zoningTab" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-medium">1. Zoning</button>
+              <button onclick="switchTab('titleTab')" id="tabBtn-titleTab" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium">2. Title & 22A</button>
+              <button onclick="switchTab('layoutTab')" id="tabBtn-layoutTab" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium">3. Layout LP</button>
+              <button onclick="switchTab('floodTab')" id="tabBtn-floodTab" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium">4. Flood/DEM</button>
+            </div>
+
+            <!-- Tab 1: Zoning -->
+            <div id="zoningTab" class="tab-panel space-y-2.5 text-xs">
+              <div class="flex justify-between py-1 border-b border-slate-800/80">
+                <span class="text-slate-400">Zone Classification:</span>
+                <span class="font-bold text-slate-200" id="z_name">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-800/80">
+                <span class="text-slate-400">Zone Code:</span>
+                <span class="font-mono text-blue-400 font-bold" id="z_code">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-800/80">
+                <span class="text-slate-400">Road Widening Reservation:</span>
+                <span class="text-slate-200 text-right max-w-xs" id="z_road">-</span>
+              </div>
+              <div class="pt-2">
+                <span class="text-[10px] uppercase font-bold text-slate-400">Permitted Uses:</span>
+                <p class="text-slate-300 text-[11px] mt-0.5" id="z_permitted">-</p>
+              </div>
+            </div>
+
+            <!-- Tab 2: Title & 22A -->
+            <div id="titleTab" class="tab-panel hidden space-y-2.5 text-xs">
+              <div class="flex justify-between py-1 border-b border-slate-800/80">
+                <span class="text-slate-400">Pattadar (Legal Owner):</span>
+                <span class="font-bold text-slate-200" id="t_pattadar">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-800/80">
+                <span class="text-slate-400">Anubhavadar (Possessor):</span>
+                <span class="font-bold text-slate-200" id="t_anubhavadar">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-800/80">
+                <span class="text-slate-400">Land Nature:</span>
+                <span class="font-bold text-slate-200" id="t_nature">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-800/80">
+                <span class="text-slate-400">Section 22A Prohibited:</span>
+                <span class="font-bold" id="t_22a">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-800/80">
+                <span class="text-slate-400">Registered Extent:</span>
+                <span class="text-slate-200 font-mono" id="t_extent">-</span>
+              </div>
+            </div>
+
+            <!-- Tab 3: Layout LP -->
+            <div id="layoutTab" class="tab-panel hidden space-y-2.5 text-xs">
+              <div class="flex justify-between py-1 border-b border-slate-800/80">
+                <span class="text-slate-400">VMRDA LP Number:</span>
+                <span class="font-bold text-emerald-400 font-mono" id="l_lp">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-800/80">
+                <span class="text-slate-400">Layout Classification:</span>
+                <span class="font-bold text-slate-200" id="l_status">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-800/80">
+                <span class="text-slate-400">Unauthorized Layout Check:</span>
+                <span class="font-bold" id="l_unauth">-</span>
+              </div>
+              <div class="pt-2">
+                <span class="text-[10px] uppercase font-bold text-slate-400">Civic Sanction Status:</span>
+                <p class="text-slate-300 text-[11px] mt-0.5" id="l_civic">-</p>
+              </div>
+            </div>
+
+            <!-- Tab 4: Flood/DEM -->
+            <div id="floodTab" class="tab-panel hidden space-y-2.5 text-xs">
+              <div class="flex justify-between py-1 border-b border-slate-800/80">
+                <span class="text-slate-400">Elevation (MSL):</span>
+                <span class="font-bold text-slate-200 font-mono" id="f_elev">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-800/80">
+                <span class="text-slate-400">Slope Percentage:</span>
+                <span class="font-bold text-slate-200 font-mono" id="f_slope">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-800/80">
+                <span class="text-slate-400">Distance to Natural Waterbody:</span>
+                <span class="font-bold font-mono" id="f_dist">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-800/80">
+                <span class="text-slate-400">Flood Hazard Category:</span>
+                <span class="font-bold text-slate-200" id="f_cat">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- PDF Export Button -->
+          <div class="pt-2">
+            <button id="downloadPdfBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 px-4 rounded-xl shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2 text-xs transition">
+              <i data-lucide="file-text" class="w-4 h-4"></i>
+              <span>Download 5-Page Due Diligence Risk Report (PDF)</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Footer Info -->
+      <div class="pt-6 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between">
+        <span>Single Source of Truth for Land Intelligence</span>
+        <span>Version 1.0.0</span>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Initialize Leaflet Map centered on Visakhapatnam Metropolitan Region
+    const map = L.map('map', { zoomControl: false }).setView([17.8942, 83.3768], 12);
+    L.control.zoom({ position: 'topright' }).addTo(map);
+
+    // ==========================================
+    // MULTI-BASEMAP DEFINITIONS
+    // ==========================================
+    
+    // 1. Esri World Imagery (Satellite) + Labels Overlay
+    const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; GeoEye, Earthstar Geographics',
+      maxZoom: 19
+    });
+    const esriLabels = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Labels &copy; Esri',
+      maxZoom: 19
+    });
+    const satelliteHybrid = L.layerGroup([esriSatellite, esriLabels]);
+
+    // 2. OpenStreetMap (OSM Standard)
+    const osmStandard = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
+    });
+
+    // 3. Topographic / Terrain (Esri World Topo)
+    const esriTopo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; USGS, Intermap, PCGIAP',
+      maxZoom: 19
+    });
+
+    // 4. CartoDB Voyager (Street)
+    const cartoVoyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO',
+      subdomains: 'abcd',
+      maxZoom: 19
+    });
+
+    // 5. CartoDB Dark Matter (Dark Mode)
+    const cartoDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO',
+      subdomains: 'abcd',
+      maxZoom: 19
+    });
+
+    // Add default basemap
+    cartoVoyager.addTo(map);
+    let activeBaseMap = cartoVoyager;
+
+    const baseMaps = {
+      "🛰️ Satellite (Hybrid)": satelliteHybrid,
+      "🗺️ OpenStreetMap": osmStandard,
+      "⛰️ Terrain / Topo": esriTopo,
+      "🏙️ Street (Voyager)": cartoVoyager,
+      "🌙 Dark Matter": cartoDark
+    };
+
+    // ==========================================
+    // THEMATIC OVERLAYS
+    // ==========================================
+    
+    // Overlay 1: VMRDA 2041 Master Plan Guide Polygons
+    const vmrdaZonesLayer = L.layerGroup();
+    // Residential zone guide (Tarluvada - Gambheeram corridor)
+    L.polygon([
+      [17.8990, 83.3680], [17.9050, 83.3850], [17.8920, 83.3980], [17.8860, 83.3750]
+    ], {
+      color: '#F59E0B', weight: 1.5, fillColor: '#FDE68A', fillOpacity: 0.25
+    }).bindPopup('<b>VMRDA 2041 R-1 Residential Zone</b><br>Tarluvada High-Density Corridor').addTo(vmrdaZonesLayer);
+
+    // Mixed Use / IT Corridor (Gambheeram / Turluvada)
+    L.polygon([
+      [17.8720, 83.3750], [17.8780, 83.3950], [17.8590, 83.4020], [17.8530, 83.3820]
+    ], {
+      color: '#3B82F6', weight: 1.5, fillColor: '#93C5FD', fillOpacity: 0.25
+    }).bindPopup('<b>VMRDA 2041 Mixed Use - 1</b><br>IT / Data Center Corridor').addTo(vmrdaZonesLayer);
+
+    // Green Belt / Forest Zone (Kambalakonda buffer)
+    L.polygon([
+      [17.8450, 83.3300], [17.8650, 83.3600], [17.8350, 83.3750], [17.8200, 83.3400]
+    ], {
+      color: '#10B981', weight: 1.5, fillColor: '#A7F3D0', fillOpacity: 0.3
+    }).bindPopup('<b>VMRDA 2041 Green Zone</b><br>Eco-Sensitive Buffer').addTo(vmrdaZonesLayer);
+
+    // Overlay 2: Statutory 30m Waterbody Buffer Zones
+    const waterBufferLayer = L.layerGroup();
+    L.polyline([
+      [17.9150, 83.3600], [17.8950, 83.3850], [17.8800, 83.4200], [17.8700, 83.4450]
+    ], {
+      color: '#06B6D4', weight: 6, opacity: 0.6
+    }).bindPopup('<b>Natural Stormwater Drainage Corridor</b><br>Mandatory 30m Setback Buffer').addTo(waterBufferLayer);
+
+    // Overlay 3: Village Centroid Hubs
+    const villageHubsLayer = L.layerGroup();
+
+    // Add default overlays to map
+    vmrdaZonesLayer.addTo(map);
+    waterBufferLayer.addTo(map);
+    villageHubsLayer.addTo(map);
+
+    const overlays = {
+      "📐 VMRDA 2041 Zoning Guides": vmrdaZonesLayer,
+      "💧 30m Waterbody Buffers": waterBufferLayer,
+      "📍 Village Hubs": villageHubsLayer
+    };
+
+    // Add standard Leaflet Layer Control to bottom-left
+    L.control.layers(baseMaps, overlays, { position: 'bottomleft', collapsed: false }).addTo(map);
+
+    // Quick-Switch Function for the top toolbar buttons
+    function setBaseMap(type) {
+      if (activeBaseMap) map.removeLayer(activeBaseMap);
+
+      const buttons = ['satellite', 'osm', 'topo', 'streets', 'dark'];
+      buttons.forEach(b => {
+        const el = document.getElementById('bm-' + b);
+        if (el) {
+          el.className = "px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 font-medium transition text-slate-300 hover:text-white hover:bg-slate-800";
+        }
+      });
+
+      const activeBtn = document.getElementById('bm-' + type);
+      if (activeBtn) {
+        activeBtn.className = "px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 font-medium transition bg-blue-600 text-white shadow";
+      }
+
+      switch (type) {
+        case 'satellite':
+          activeBaseMap = satelliteHybrid;
+          break;
+        case 'osm':
+          activeBaseMap = osmStandard;
+          break;
+        case 'topo':
+          activeBaseMap = esriTopo;
+          break;
+        case 'streets':
+          activeBaseMap = cartoVoyager;
+          break;
+        case 'dark':
+          activeBaseMap = cartoDark;
+          break;
+        default:
+          activeBaseMap = cartoVoyager;
+      }
+      activeBaseMap.addTo(map);
+    }
+
+    let activeMarker = null;
+    let activeCircle = null;
+    let currentReport = null;
+
+    // Load indexed villages on startup
+    async function loadVillages() {
+      try {
+        const res = await fetch('/api/v1/villages');
+        const villages = await res.json();
+        const sel = document.getElementById('villageSelect');
+        sel.innerHTML = '<option value="">-- Select Village --</option>';
+        const baseCoords = {
+          "Tarluvada": [17.8942, 83.3768],
+          "Gambheeram": [17.8645, 83.3852],
+          "Anandapuram": [17.9102, 83.4124],
+          "Bheemunipatnam": [17.8911, 83.4542],
+          "Tagarapuvalasa": [17.9255, 83.4320],
+          "Bhogapuram": [18.0195, 83.4925],
+          "Sontyam": [17.8710, 83.3420],
+          "Gidijala": [17.9350, 83.3620],
+          "Kusuluvada": [17.9420, 83.3890],
+          "Mukundapuram": [17.9540, 83.4110],
+          "Chandaka": [17.8820, 83.4020],
+          "Dabbanda": [17.8780, 83.3240],
+          "Gudilova": [17.9040, 83.3320],
+          "Peddipalem": [17.9180, 83.4420]
+        };
+
+        villages.forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v.village_name;
+          opt.textContent = `${v.village_name} (${v.survey_count} parcels)`;
+          sel.appendChild(opt);
+
+          const c = baseCoords[v.village_name];
+          if (c) {
+            const vm = L.circleMarker(c, {
+              radius: 5,
+              color: '#3B82F6',
+              fillColor: '#60A5FA',
+              fillOpacity: 0.8,
+              weight: 1.5
+            }).bindTooltip(`<b>${v.village_name}</b><br>${v.survey_count} parcels`, { direction: 'top' });
+
+            vm.on('click', () => {
+              sel.value = v.village_name;
+              loadSurveysForVillage(v.village_name);
+            });
+            vm.addTo(villageHubsLayer);
+          }
+        });
+        sel.value = 'Tarluvada';
+        loadSurveysForVillage('Tarluvada');
+      } catch (e) {
+        console.error('Failed to load villages', e);
+      }
+    }
+
+    async function loadSurveysForVillage(vname) {
+      if (!vname) return;
+      try {
+        const res = await fetch(`/api/v1/villages/${encodeURIComponent(vname)}/surveys`);
+        const data = await res.json();
+        const input = document.getElementById('surveyInput');
+        if (data.survey_numbers && data.survey_numbers.length > 0) {
+          input.value = data.survey_numbers[0];
+        }
+      } catch (e) {
+        console.error('Failed to load surveys', e);
+      }
+    }
+
+    document.getElementById('villageSelect').addEventListener('change', (e) => {
+      loadSurveysForVillage(e.target.value);
+    });
+
+    // Run due diligence query
+    async function runQuery() {
+      const vname = document.getElementById('villageSelect').value;
+      const snum = document.getElementById('surveyInput').value;
+      if (!vname || !snum) {
+        alert('Please select a village and enter a survey number.');
+        return;
+      }
+
+      const btn = document.getElementById('verifyBtn');
+      btn.innerHTML = `<span class="animate-spin mr-1">◌</span> Verifying...`;
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/v1/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            district: document.getElementById('districtSelect').value,
+            mandal: document.getElementById('mandalSelect').value,
+            village_name: vname,
+            survey_number: snum,
+            purpose: "Residential / Commercial Due Diligence"
+          })
+        });
+
+        if (!res.ok) throw new Error('Verification failed');
+        const data = await res.json();
+        currentReport = data;
+        displayReport(data);
+      } catch (err) {
+        alert('Error verifying parcel: ' + err.message);
+      } finally {
+        btn.innerHTML = `<i data-lucide="search" class="w-3.5 h-3.5"></i> <span>Verify Parcel</span>`;
+        btn.disabled = false;
+        lucide.createIcons();
+      }
+    }
+
+    document.getElementById('verifyBtn').addEventListener('click', runQuery);
+
+    function displayReport(data) {
+      document.getElementById('emptyState').classList.add('hidden');
+      document.getElementById('reportContent').classList.remove('hidden');
+
+      // Populate Header & Risk Score
+      document.getElementById('reportIdLabel').textContent = `REPORT #${data.report_id}`;
+      document.getElementById('parcelTitleLabel').textContent = `${data.target_parcel.village_name}, Sy No. ${data.target_parcel.survey_number}`;
+      document.getElementById('reportTimestampLabel').textContent = `${data.generated_at}`;
+
+      document.getElementById('riskGradeLabel').textContent = data.overall_risk_grade;
+      document.getElementById('riskScoreLabel').textContent = `${data.overall_risk_score} / 100`;
+      
+      const bar = document.getElementById('riskProgressBar');
+      bar.style.width = `${Math.min(100, Math.max(5, data.overall_risk_score))}%`;
+
+      const gradeBox = document.getElementById('gradeBadgeContainer');
+      const glow = document.getElementById('gradeGlow');
+      const statusBanner = document.getElementById('statusBanner');
+      const statusHeading = document.getElementById('statusHeading');
+
+      if (['A+', 'A'].includes(data.overall_risk_grade)) {
+        gradeBox.className = "text-center px-4 py-2 rounded-xl border border-emerald-500/40 bg-emerald-950/40 text-emerald-400";
+        glow.className = "absolute -top-12 -right-12 w-36 h-36 rounded-full blur-3xl opacity-30 bg-emerald-500";
+        bar.className = "h-full bg-emerald-500 transition-all duration-700";
+        statusBanner.className = "mt-4 p-3 rounded-xl border border-emerald-500/30 bg-emerald-950/30 text-emerald-300 text-xs";
+        statusHeading.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> ${data.risk_status}`;
+      } else if (data.overall_risk_grade === 'B') {
+        gradeBox.className = "text-center px-4 py-2 rounded-xl border border-amber-500/40 bg-amber-950/40 text-amber-400";
+        glow.className = "absolute -top-12 -right-12 w-36 h-36 rounded-full blur-3xl opacity-30 bg-amber-500";
+        bar.className = "h-full bg-amber-500 transition-all duration-700";
+        statusBanner.className = "mt-4 p-3 rounded-xl border border-amber-500/30 bg-amber-950/30 text-amber-300 text-xs";
+        statusHeading.innerHTML = `<i data-lucide="alert-circle" class="w-4 h-4 text-amber-400"></i> ${data.risk_status}`;
+      } else {
+        gradeBox.className = "text-center px-4 py-2 rounded-xl border border-rose-500/40 bg-rose-950/40 text-rose-400";
+        glow.className = "absolute -top-12 -right-12 w-36 h-36 rounded-full blur-3xl opacity-30 bg-rose-500";
+        bar.className = "h-full bg-rose-500 transition-all duration-700";
+        statusBanner.className = "mt-4 p-3 rounded-xl border border-rose-500/30 bg-rose-950/30 text-rose-300 text-xs";
+        statusHeading.innerHTML = `<i data-lucide="alert-octagon" class="w-4 h-4 text-rose-400"></i> ${data.risk_status}`;
+      }
+
+      document.getElementById('statusVerdict').textContent = data.summary_verdict;
+
+      // Red flags
+      const redBox = document.getElementById('redFlagsBox');
+      const redList = document.getElementById('redFlagsList');
+      redList.innerHTML = '';
+      if (data.red_flag_alerts && data.red_flag_alerts.length > 0) {
+        redBox.classList.remove('hidden');
+        data.red_flag_alerts.forEach(a => {
+          const li = document.createElement('li');
+          li.textContent = a;
+          redList.appendChild(li);
+        });
+      } else {
+        redBox.classList.add('hidden');
+      }
+
+      // Positive indicators
+      const posList = document.getElementById('positiveList');
+      posList.innerHTML = '';
+      data.positive_indicators.forEach(p => {
+        const li = document.createElement('li');
+        li.textContent = p;
+        posList.appendChild(li);
+      });
+
+      // Tabs
+      document.getElementById('z_name').textContent = data.zoning.zone_name;
+      document.getElementById('z_code').textContent = data.zoning.zone_code;
+      document.getElementById('z_road').textContent = data.zoning.road_widening_reservation;
+      document.getElementById('z_permitted').textContent = data.zoning.permitted_uses.join(', ');
+
+      document.getElementById('t_pattadar').textContent = data.title_legal.pattadar_name;
+      document.getElementById('t_anubhavadar').textContent = data.title_legal.anubhavadar_name;
+      document.getElementById('t_nature').textContent = data.title_legal.land_nature;
+      const el22 = document.getElementById('t_22a');
+      el22.textContent = data.title_legal.section_22a_prohibited ? "PROHIBITED (22A RESTRICTED)" : "CLEAR";
+      el22.className = data.title_legal.section_22a_prohibited ? "font-bold text-rose-400" : "font-bold text-emerald-400";
+      document.getElementById('t_extent').textContent = `${data.title_legal.extent_acres} Acres (Khata: ${data.title_legal.khata_number})`;
+
+      document.getElementById('l_lp').textContent = data.layout.lp_number || "None / Unplatted";
+      document.getElementById('l_status').textContent = data.layout.layout_status;
+      const unauthEl = document.getElementById('l_unauth');
+      unauthEl.textContent = data.layout.is_unauthorized_list ? "FLAGGED UNAUTHORIZED" : "CLEAR";
+      unauthEl.className = data.layout.is_unauthorized_list ? "font-bold text-rose-400" : "font-bold text-emerald-400";
+      document.getElementById('l_civic').textContent = data.layout.civic_utility_clearance;
+
+      document.getElementById('f_elev').textContent = `${data.terrain_flood.elevation_meters} m`;
+      document.getElementById('f_slope').textContent = `${data.terrain_flood.slope_percentage} %`;
+      document.getElementById('f_dist').textContent = `${data.terrain_flood.distance_to_waterbody_meters} m`;
+      document.getElementById('f_cat').textContent = data.terrain_flood.flood_hazard_category;
+
+      // Update Map Position
+      const lat = data.coordinates.latitude;
+      const lon = data.coordinates.longitude;
+      map.flyTo([lat, lon], 14, { duration: 1.2 });
+
+      if (activeMarker) map.removeLayer(activeMarker);
+      if (activeCircle) map.removeLayer(activeCircle);
+
+      const markerColor = ['A+', 'A'].includes(data.overall_risk_grade) ? '#10B981' : (data.overall_risk_grade === 'B' ? '#F59E0B' : '#EF4444');
+      activeCircle = L.circle([lat, lon], {
+        color: markerColor,
+        fillColor: markerColor,
+        fillOpacity: 0.2,
+        radius: 200
+      }).addTo(map);
+
+      activeMarker = L.marker([lat, lon]).addTo(map)
+        .bindPopup(`<b>${data.target_parcel.village_name} (Sy No. ${data.target_parcel.survey_number})</b><br/>Grade: <b>${data.overall_risk_grade}</b> (${data.overall_risk_score}/100)<br/>Zone: ${data.zoning.zone_name}`)
+        .openPopup();
+
+      lucide.createIcons();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+
+      ['zoningTab', 'titleTab', 'layoutTab', 'floodTab'].forEach(t => {
+        const btn = document.getElementById('tabBtn-' + t);
+        if (t === tabId) {
+          btn.className = "px-3 py-1.5 rounded-lg bg-blue-600 text-white font-medium";
+        } else {
+          btn.className = "px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium";
+        }
+      });
+    }
+
+    // Demo Scenario Loader
+    function loadScenario(vname, snum) {
+      document.getElementById('villageSelect').value = vname;
+      document.getElementById('surveyInput').value = snum;
+      runQuery();
+    }
+
+    // Download PDF Report Handler
+    document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+      if (!currentReport) return;
+      window.open(`/api/v1/report/download/${currentReport.report_id}`, '_blank');
+    });
+
+    // Run on startup
+    loadVillages();
+  </script>
+</body>
+</html>
