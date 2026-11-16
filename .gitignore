@@ -51,6 +51,7 @@ final.tif
 *.tmp
 data/cache/
 data/sample_reports/*.png
+data/sample_reports/*.pdf
 
 *.tmp
 *.log
