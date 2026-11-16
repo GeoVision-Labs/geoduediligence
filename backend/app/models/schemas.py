@@ -30,6 +30,8 @@ class LegalTitleDetails(BaseModel):
     source_portal: str = "AP MeeBhoomi / Webland Revenue Record"
     title_risk_score: float
     risk_level: str
+    provenance: Optional[str] = Field(default="VERIFIED_RECORD", description="Data provenance: LIVE_SCRAPER, CACHE_HIT, or BASELINE_FALLBACK")
+    latency_ms: Optional[float] = Field(default=0.0, description="Query retrieval latency in milliseconds")
 
 class LayoutLegitimacyDetails(BaseModel):
     lp_number: Optional[str]

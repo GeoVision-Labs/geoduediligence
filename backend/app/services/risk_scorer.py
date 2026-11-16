@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, List
 
 from .spatial_engine import SpatialEngine
@@ -35,8 +35,13 @@ class RiskAssessmentEngine:
         lat = survey_rec["latitude"] if survey_rec else 17.8920
         lon = survey_rec["longitude"] if survey_rec else 83.3950
         
-        # 2. MeeBhoomi Title & 22A Check
-        title_data = self.meebhoomi_service.verify_title_records(v_name, s_no)
+        # 2. MeeBhoomi Title & 22A Check (Scraper Daemon / Cache)
+        title_data = self.meebhoomi_service.verify_title_records(
+            village_name=v_name,
+            survey_number=s_no,
+            district_name=query.district,
+            mandal_name=query.mandal or "Anandapuram"
+        )
         
         # 3. Layout Clearance Check
         layout_data = self.layout_service.check_layout_clearance(v_name, s_no)
@@ -114,7 +119,8 @@ class RiskAssessmentEngine:
             status = "CRITICAL RISK / DO NOT PROCEED (PROHIBITED)"
             verdict = "Acquisition is illegal or blocked by Section 22A prohibited property or municipal demolition order."
 
-        report_uuid = f"GDD-{datetime.utcnow().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
+        now_utc = datetime.now(timezone.utc)
+        report_uuid = f"GDD-{now_utc.strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
         
         # Cryptographic SHA-256 Digital Signature
         raw_signature = f"{report_uuid}|{query.district}|{query.mandal}|{v_name}|{s_no}|{composite_score}|{grade}|{title_data['pattadar_name']}|{title_data['section_22a_prohibited']}|{zoning_data['zone_code']}"
@@ -124,7 +130,7 @@ class RiskAssessmentEngine:
         
         return DueDiligenceResult(
             report_id=report_uuid,
-            generated_at=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+            generated_at=now_utc.strftime("%Y-%m-%d %H:%M:%S UTC"),
             target_parcel={
                 "district": query.district,
                 "mandal": query.mandal,
