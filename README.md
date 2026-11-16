@@ -5,7 +5,7 @@
 **Target Jurisdiction:** Visakhapatnam Metropolitan Region Development Authority (VMRDA) — Master Plan 2041  
 **Regional Coverage:** 7,328 km² across Visakhapatnam, Vizianagaram, and Anakapalli Districts
 
-[![Version](https://img.shields.io/badge/version-v0.5.0--beta-blue.svg)](https://github.com/GeoVision-Labs/geoduediligence)
+[![Version](https://img.shields.io/badge/version-v0.6.0--beta-blue.svg)](https://github.com/GeoVision-Labs/geoduediligence)
 [![Current Phase](https://img.shields.io/badge/Current%20Phase-Phase%205%20Regional%20Active-success.svg)](https://github.com/GeoVision-Labs/geoduediligence)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI%200.110-009688.svg)](https://fastapi.tiangolo.com)
 [![Leaflet](https://img.shields.io/badge/GIS-Leaflet%201.9-199900.svg)](https://leafletjs.com)
@@ -36,12 +36,13 @@ Land acquisition and due diligence in Andhra Pradesh—specifically within the r
 
 | Metric | Details |
 | :--- | :--- |
-| **Current Version** | **`v0.5.0-beta`** |
+| **Current Version** | **`v0.6.0-beta`** |
 | **Active Milestone** | **Phase 5 Regional Expansion Active — Full 7,328 km² VMRDA Jurisdiction Verified** |
 | **Regional Coverage** | **100% of VMRDA 2041 Jurisdiction** (12,827 km² gross extent, 7,328 km² notified territory across 3 districts) |
 | **Official Map Sheets** | **6 Sheets (`p1.tif` to `p6.tif`) + Unified Stitched Regional Mosaic (`final.tif` at 54,000 × 20,700 px)** |
 | **Title Audit Engine** | **Live AP MeeBhoomi Headless Scraper Daemon with Self-Contained OCR & 14-day Multi-Tier Caching** |
 | **Enterprise Underwriting** | **Dedicated B2B REST API & HMAC-SHA256 Webhook Suite for Banks, HFCs & CREDAI** |
+| **Interactive UI** | **Dual-Pane GIS Workstation with Live Scraper Badges, Bank Simulator & Batch Portfolio Modal** |
 | **Core Corridors** | Atchutapuram SEZ (Anakapalli), Bhogapuram International Airport (Vizianagaram), Turluvada IT/Google DC Corridor, Visakhapatnam Metropolitan Urban Core |
 
 ### 📊 Spatial & Mathematical Proof of 7,328 km² Coverage
@@ -149,6 +150,10 @@ Land acquisition and due diligence in Andhra Pradesh—specifically within the r
   - [x] **CSV Audit Export:** Downloadable spreadsheet with risk scores, Section 22A flags, and public certificate verification URLs.
   - [x] **HMAC-SHA256 Signed Webhooks:** Asynchronous event notifications (`X-GDD-Signature`) dispatched on underwriting completion.
   - [x] **Test Suite (`scripts/test_b2b_underwriting.py`):** 10 automated unit and integration tests passing.
+- [x] **Frontend Workstation Enhancements & Live Telemetry (`frontend/index.html`):**
+  - [x] **Live Scraper Badges & Provenance Indicators:** Real-time visual pill badges (`LIVE_SCRAPER`, `CACHE_HIT`, `BASELINE_FALLBACK`) with audit retrieval latency in milliseconds.
+  - [x] **B2B Loan Facility Simulator Drawer (Tab 5):** Instant credit decisioning (`APPROVAL_RECOMMENDED`, `CONDITIONAL_SANCTION`, `REJECTION_MANDATED`), LTV caps (75%/50%/0%), and pre-disbursement legal covenants directly on the UI.
+  - [x] **Batch Portfolio Audit Modal:** In-browser multi-parcel audit runner with 4 KPI counters (Approved, Conditional, Rejected, Total Sanctioned) and one-click audited CSV download.
 - [ ] Direct PMTiles / vector tile serving (`pg_tileserv`) for sub-second parcel rendering.
 
 ---

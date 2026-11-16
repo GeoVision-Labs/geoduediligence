@@ -71,6 +71,9 @@
       <div class="border-l border-slate-800 pl-4">
         <span>Master Plan: <b class="text-slate-200">2041 Map 4</b></span>
       </div>
+      <button onclick="openBatchModal()" class="px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-medium transition flex items-center gap-1.5 text-xs shadow-sm">
+        <i data-lucide="layers" class="w-3.5 h-3.5 text-indigo-400"></i> B2B Batch Audit
+      </button>
       <a href="/docs" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition flex items-center gap-1.5">
         <i data-lucide="code" class="w-3.5 h-3.5"></i> API Docs
       </a>
@@ -228,6 +231,7 @@
                 </div>
                 <h2 class="text-xl font-extrabold text-white mt-0.5" id="parcelTitleLabel">Tarluvada, Sy No. 72</h2>
                 <div class="text-xs text-slate-400 mt-0.5" id="reportTimestampLabel">2026-11-15 16:40:00 UTC</div>
+                <div id="headerScraperBadge" class="mt-2 flex items-center gap-2"></div>
               </div>
               
               <!-- Grade Badge -->
@@ -276,11 +280,14 @@
           <!-- Interactive Tabbed Audit Breakdown -->
           <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4">
             <!-- Tabs -->
-            <div class="flex items-center gap-2 border-b border-slate-800 pb-2 mb-4 text-xs">
-              <button onclick="switchTab('zoningTab')" id="tabBtn-zoningTab" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-medium">1. Zoning</button>
-              <button onclick="switchTab('titleTab')" id="tabBtn-titleTab" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium">2. Title & 22A</button>
-              <button onclick="switchTab('layoutTab')" id="tabBtn-layoutTab" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium">3. Layout LP</button>
-              <button onclick="switchTab('floodTab')" id="tabBtn-floodTab" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium">4. Flood/DEM</button>
+            <div class="flex items-center gap-1.5 border-b border-slate-800 pb-2 mb-4 text-xs overflow-x-auto">
+              <button onclick="switchTab('zoningTab')" id="tabBtn-zoningTab" class="px-2.5 py-1.5 rounded-lg bg-blue-600 text-white font-medium whitespace-nowrap">1. Zoning</button>
+              <button onclick="switchTab('titleTab')" id="tabBtn-titleTab" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium whitespace-nowrap">2. Title & 22A</button>
+              <button onclick="switchTab('layoutTab')" id="tabBtn-layoutTab" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium whitespace-nowrap">3. Layout LP</button>
+              <button onclick="switchTab('floodTab')" id="tabBtn-floodTab" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium whitespace-nowrap">4. Flood/DEM</button>
+              <button onclick="switchTab('underwriteTab')" id="tabBtn-underwriteTab" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium whitespace-nowrap flex items-center gap-1">
+                <i data-lucide="landmark" class="w-3.5 h-3.5 text-indigo-400"></i> 5. Bank Underwrite
+              </button>
             </div>
 
             <!-- Tab 1: Zoning -->
@@ -305,6 +312,16 @@
 
             <!-- Tab 2: Title & 22A -->
             <div id="titleTab" class="tab-panel hidden space-y-2.5 text-xs">
+              <!-- Live Scraper Provenance Card -->
+              <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div id="scraperProvenanceBadge"></div>
+                </div>
+                <div class="text-[10px] text-slate-400 font-mono" id="scraperLatencyLabel">
+                  Latency: 0.01 ms
+                </div>
+              </div>
+
               <div class="flex justify-between py-1 border-b border-slate-800/80">
                 <span class="text-slate-400">Pattadar (Legal Owner):</span>
                 <span class="font-bold text-slate-200" id="t_pattadar">-</span>
@@ -322,8 +339,16 @@
                 <span class="font-bold" id="t_22a">-</span>
               </div>
               <div class="flex justify-between py-1 border-b border-slate-800/80">
+                <span class="text-slate-400">Title Dispute / Tenancy:</span>
+                <span class="font-bold" id="t_dispute">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-800/80">
                 <span class="text-slate-400">Registered Extent:</span>
                 <span class="text-slate-200 font-mono" id="t_extent">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-slate-800/80">
+                <span class="text-slate-400">Source Revenue Portal:</span>
+                <span class="text-slate-300 font-medium" id="t_source">AP MeeBhoomi / Webland</span>
               </div>
             </div>
 
@@ -366,6 +391,46 @@
                 <span class="font-bold text-slate-200" id="f_cat">-</span>
               </div>
             </div>
+
+            <!-- Tab 5: Bank Underwrite -->
+            <div id="underwriteTab" class="tab-panel hidden space-y-3 text-xs">
+              <div class="p-3 bg-indigo-950/30 border border-indigo-800/40 rounded-xl">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="font-bold text-indigo-300 flex items-center gap-1.5 text-xs">
+                    <i data-lucide="landmark" class="w-3.5 h-3.5 text-indigo-400"></i> B2B Loan Facility Simulator
+                  </span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold">Institutional API</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                  <div>
+                    <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Sanctioning Entity</label>
+                    <select id="uwBankSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-200 text-xs focus:outline-none focus:border-indigo-500">
+                      <option value="gdd_live_sbi_enterprise_991823">State Bank of India (SBI)</option>
+                      <option value="gdd_live_hdfc_capital_441209">HDFC Capital & Real Estate</option>
+                      <option value="gdd_live_lic_housing_771802">LIC Housing Finance Ltd</option>
+                      <option value="gdd_test_credai_developer_123456">CREDAI Developer Sandbox</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Requested Facility (INR)</label>
+                    <input id="uwLoanAmount" type="number" value="20000000" step="500000" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-200 text-xs focus:outline-none focus:border-indigo-500" />
+                  </div>
+                </div>
+                <div class="flex items-center gap-1.5 mb-1">
+                  <button onclick="setLoanAmt(10000000)" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[10px] text-slate-300">₹1.0 Cr</button>
+                  <button onclick="setLoanAmt(25000000)" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[10px] text-slate-300">₹2.5 Cr</button>
+                  <button onclick="setLoanAmt(50000000)" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[10px] text-slate-300">₹5.0 Cr</button>
+                  <button onclick="runUnderwriteSimulation(true)" id="runUwBtn" class="ml-auto px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-1 shadow-lg shadow-indigo-600/30">
+                    <i data-lucide="play" class="w-3 h-3"></i> Simulate Sanction
+                  </button>
+                </div>
+              </div>
+
+              <!-- Dynamic Underwriting Results Card -->
+              <div id="uwResultsBox" class="space-y-2.5">
+                <div class="p-3 text-center text-slate-400 text-xs">Click "Simulate Sanction" to calculate collateral valuation and bank credit decision.</div>
+              </div>
+            </div>
           </div>
 
           <!-- SHA-256 Digital Fingerprint Badge -->
@@ -395,6 +460,87 @@
       </div>
     </div>
   </main>
+
+  <!-- Batch Portfolio Audit Modal -->
+  <div id="batchModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl p-6 shadow-2xl relative">
+      <button onclick="closeBatchModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800 hover:bg-slate-700 transition">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center">
+          <i data-lucide="layers" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white">Institutional Portfolio Audit</h3>
+          <p class="text-xs text-slate-400">High-volume automated due diligence for Banks, HFCs & CREDAI developers</p>
+        </div>
+      </div>
+
+      <!-- Action Tabs: Sample Audit vs CSV Upload -->
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <button onclick="runSampleBatchAudit()" id="runSampleBatchBtn" class="p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-indigo-500/50 text-left transition group">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-bold text-white group-hover:text-indigo-300">Run Sample Portfolio</span>
+            <i data-lucide="play" class="w-3.5 h-3.5 text-indigo-400"></i>
+          </div>
+          <p class="text-[11px] text-slate-400">Instantly audits 3 diversified loan cases (Clean LP, Section 22A Prohibited, Unauthorized Layout).</p>
+        </button>
+
+        <label class="p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-indigo-500/50 text-left transition group cursor-pointer">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-bold text-white group-hover:text-indigo-300">Upload CSV Portfolio</span>
+            <i data-lucide="upload" class="w-3.5 h-3.5 text-indigo-400"></i>
+          </div>
+          <p class="text-[11px] text-slate-400">Upload any .csv file with survey numbers & loan amounts (up to 500 loans).</p>
+          <input type="file" id="batchCsvInput" accept=".csv" class="hidden" onchange="handleCsvUpload(event)" />
+        </label>
+      </div>
+
+      <!-- Batch Processing Status Card -->
+      <div id="batchStatusCard" class="hidden bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
+        <div class="flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2">
+            <span id="batchSpinner" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+            <span class="font-bold text-white" id="batchTitleDisplay">Portfolio Audit</span>
+          </div>
+          <span class="font-mono text-emerald-400 font-bold" id="batchStatusBadge">COMPLETED</span>
+        </div>
+
+        <!-- 4 KPI Metrics -->
+        <div class="grid grid-cols-4 gap-2 text-center">
+          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800">
+            <div class="text-[10px] text-slate-400 font-medium uppercase">Total Audited</div>
+            <div class="text-base font-bold text-white" id="kpiTotal">0</div>
+          </div>
+          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800">
+            <div class="text-[10px] text-emerald-400 font-medium uppercase">Approved</div>
+            <div class="text-base font-bold text-emerald-400" id="kpiApproved">0</div>
+          </div>
+          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800">
+            <div class="text-[10px] text-amber-400 font-medium uppercase">Conditional</div>
+            <div class="text-base font-bold text-amber-400" id="kpiConditional">0</div>
+          </div>
+          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800">
+            <div class="text-[10px] text-rose-400 font-medium uppercase">Rejected</div>
+            <div class="text-base font-bold text-rose-400" id="kpiRejected">0</div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-800/80">
+          <span class="text-slate-400">Total Recommended Sanction:</span>
+          <span class="font-bold text-emerald-400 font-mono text-sm" id="kpiSanctionAmt">INR 0</span>
+        </div>
+
+        <!-- Download CSV Button -->
+        <a id="batchDownloadBtn" href="#" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 text-xs transition">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          <span>Download Comprehensive Audited CSV Report</span>
+        </a>
+      </div>
+    </div>
+  </div>
 
   <script>
     // Initialize Lucide Icons
@@ -739,13 +885,40 @@
       document.getElementById('z_road').textContent = data.zoning.road_widening_reservation;
       document.getElementById('z_permitted').textContent = data.zoning.permitted_uses.join(', ');
 
+      // Title & Live Scraper Telemetry
+      const prov = (data.title_legal && data.title_legal.provenance) || "BASELINE_FALLBACK";
+      const latency = (data.title_legal && data.title_legal.latency_ms) || 0.01;
+      let provBadgeHtml = '';
+      if (prov === 'LIVE_SCRAPER') {
+        provBadgeHtml = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping"></span> Live Scraped (${latency} ms)</span>`;
+      } else if (prov === 'CACHE_HIT') {
+        provBadgeHtml = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5"><i data-lucide="zap" class="w-3 h-3 text-emerald-400"></i> Redis Cache Hit (${latency} ms)</span>`;
+      } else {
+        provBadgeHtml = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1.5"><i data-lucide="shield" class="w-3 h-3 text-amber-400"></i> Verified Baseline Snapshot (${latency} ms)</span>`;
+      }
+      const hdrBadge = document.getElementById('headerScraperBadge');
+      if (hdrBadge) hdrBadge.innerHTML = provBadgeHtml;
+      const tabBadge = document.getElementById('scraperProvenanceBadge');
+      if (tabBadge) tabBadge.innerHTML = provBadgeHtml;
+      const latLabel = document.getElementById('scraperLatencyLabel');
+      if (latLabel) latLabel.textContent = `Latency: ${latency} ms`;
+
       document.getElementById('t_pattadar').textContent = data.title_legal.pattadar_name;
       document.getElementById('t_anubhavadar').textContent = data.title_legal.anubhavadar_name;
       document.getElementById('t_nature').textContent = data.title_legal.land_nature;
       const el22 = document.getElementById('t_22a');
       el22.textContent = data.title_legal.section_22a_prohibited ? "PROHIBITED (22A RESTRICTED)" : "CLEAR";
       el22.className = data.title_legal.section_22a_prohibited ? "font-bold text-rose-400" : "font-bold text-emerald-400";
+      
+      const dispEl = document.getElementById('t_dispute');
+      if (dispEl) {
+        dispEl.textContent = data.title_legal.title_dispute_flag ? "MISMATCH FLAGGED (Adverse Possession / Tenancy)" : "CLEAR (Sole Registered Title)";
+        dispEl.className = data.title_legal.title_dispute_flag ? "font-bold text-amber-400" : "font-bold text-emerald-400";
+      }
+
       document.getElementById('t_extent').textContent = `${data.title_legal.extent_acres} Acres (Khata: ${data.title_legal.khata_number})`;
+      const srcEl = document.getElementById('t_source');
+      if (srcEl) srcEl.textContent = data.title_legal.source_portal || "AP MeeBhoomi / Webland";
 
       document.getElementById('l_lp').textContent = data.layout.lp_number || "None / Unplatted";
       document.getElementById('l_status').textContent = data.layout.layout_status;
@@ -758,6 +931,9 @@
       document.getElementById('f_slope').textContent = `${data.terrain_flood.slope_percentage} %`;
       document.getElementById('f_dist').textContent = `${data.terrain_flood.distance_to_waterbody_meters} m`;
       document.getElementById('f_cat').textContent = data.terrain_flood.flood_hazard_category;
+
+      // Automatically evaluate B2B loan underwriting simulation
+      runUnderwriteSimulation(false);
 
       // Update Map Position
       const lat = data.coordinates.latitude;
@@ -784,16 +960,234 @@
 
     function switchTab(tabId) {
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-      document.getElementById(tabId).classList.remove('hidden');
+      const activeP = document.getElementById(tabId);
+      if (activeP) activeP.classList.remove('hidden');
 
-      ['zoningTab', 'titleTab', 'layoutTab', 'floodTab'].forEach(t => {
+      ['zoningTab', 'titleTab', 'layoutTab', 'floodTab', 'underwriteTab'].forEach(t => {
         const btn = document.getElementById('tabBtn-' + t);
-        if (t === tabId) {
-          btn.className = "px-3 py-1.5 rounded-lg bg-blue-600 text-white font-medium";
-        } else {
-          btn.className = "px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium";
+        if (btn) {
+          if (t === tabId) {
+            btn.className = "px-2.5 py-1.5 rounded-lg bg-blue-600 text-white font-medium whitespace-nowrap";
+          } else {
+            btn.className = "px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium whitespace-nowrap";
+          }
         }
       });
+      lucide.createIcons();
+    }
+
+    // ==========================================
+    // B2B UNDERWRITING & BATCH PORTFOLIO HANDLERS
+    // ==========================================
+    function setLoanAmt(val) {
+      document.getElementById('uwLoanAmount').value = val;
+      runUnderwriteSimulation(true);
+    }
+
+    function openBatchModal() {
+      document.getElementById('batchModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeBatchModal() {
+      document.getElementById('batchModal').classList.add('hidden');
+    }
+
+    async function runUnderwriteSimulation(isManual = false) {
+      if (!currentReport) return;
+      const btn = document.getElementById('runUwBtn');
+      if (btn && isManual) btn.innerHTML = `<span class="animate-spin mr-1">◌</span> Evaluating...`;
+
+      const apiKey = document.getElementById('uwBankSelect').value;
+      const loanAmt = parseFloat(document.getElementById('uwLoanAmount').value) || 20000000;
+      const vname = currentReport.target_parcel.village_name;
+      const snum = currentReport.target_parcel.survey_number;
+
+      try {
+        const res = await fetch('/api/v1/b2b/underwrite', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': apiKey
+          },
+          body: JSON.stringify({
+            case_ref: `UW-${snum}-${Date.now().toString().slice(-4)}`,
+            applicant_name: currentReport.title_legal.pattadar_name || "Applicant Entity",
+            loan_amount_inr: loanAmt,
+            district: currentReport.target_parcel.district || "Visakhapatnam",
+            mandal: currentReport.target_parcel.mandal || "Anandapuram",
+            village_name: vname,
+            survey_number: snum,
+            proposed_end_use: "Institutional Mortgage Facility"
+          })
+        });
+
+        if (!res.ok) throw new Error('Underwriting failed');
+        const uw = await res.json();
+        renderUnderwritingResult(uw);
+      } catch (err) {
+        console.error('Underwriting simulation error', err);
+        if (isManual) alert('Error running underwriting: ' + err.message);
+      } finally {
+        if (btn) btn.innerHTML = `<i data-lucide="play" class="w-3 h-3"></i> Simulate Sanction`;
+        lucide.createIcons();
+      }
+    }
+
+    function renderUnderwritingResult(uw) {
+      const container = document.getElementById('uwResultsBox');
+      if (!container) return;
+
+      const isApproved = uw.decision === 'APPROVAL_RECOMMENDED';
+      const isCond = uw.decision === 'CONDITIONAL_SANCTION';
+      
+      const badgeBg = isApproved ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300' :
+                      (isCond ? 'bg-amber-950/40 border-amber-500/40 text-amber-300' : 'bg-rose-950/40 border-rose-500/40 text-rose-300');
+      
+      const badgeIcon = isApproved ? 'check-circle' : (isCond ? 'alert-circle' : 'slash');
+      const badgeColor = isApproved ? 'text-emerald-400' : (isCond ? 'text-amber-400' : 'text-rose-400');
+
+      let covenantsHtml = '';
+      if (uw.pre_disbursement_covenants && uw.pre_disbursement_covenants.length > 0) {
+        covenantsHtml = `
+          <div class="mt-2 pt-2 border-t border-slate-800">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Pre-Disbursement Covenants:</span>
+            <ul class="space-y-1 list-disc pl-4 text-[10.5px] text-slate-300">
+              ${uw.pre_disbursement_covenants.map(c => `<li>${c}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      container.innerHTML = `
+        <!-- Decision Banner -->
+        <div class="p-3 rounded-xl border ${badgeBg}">
+          <div class="flex items-center justify-between mb-1">
+            <div class="font-bold flex items-center gap-1.5 text-xs">
+              <i data-lucide="${badgeIcon}" class="w-4 h-4 ${badgeColor}"></i>
+              <span>${uw.decision.replace('_', ' ')}</span>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-900 border border-slate-700">LTV: ${uw.collateral_valuation.max_recommended_ltv_pct}%</span>
+          </div>
+          <p class="text-[11px] text-slate-300 leading-relaxed">${uw.decision_summary}</p>
+        </div>
+
+        <!-- Collateral Valuation Breakdown -->
+        <div class="p-3 bg-slate-900 border border-slate-800 rounded-xl space-y-1.5 text-[11px]">
+          <div class="flex justify-between">
+            <span class="text-slate-400">Indicative Collateral Value:</span>
+            <span class="font-bold text-white font-mono">₹ ${uw.collateral_valuation.total_indicative_collateral_value_inr.toLocaleString('en-IN')}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Max Sanctionable Loan:</span>
+            <span class="font-bold text-emerald-400 font-mono text-xs">₹ ${uw.collateral_valuation.max_sanctionable_loan_amount_inr.toLocaleString('en-IN')}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Valuation Rate Model:</span>
+            <span class="text-slate-300 font-mono text-[10px]">${uw.collateral_valuation.valuation_basis}</span>
+          </div>
+          ${covenantsHtml}
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    async function runSampleBatchAudit() {
+      const btn = document.getElementById('runSampleBatchBtn');
+      btn.classList.add('opacity-50', 'pointer-events-none');
+      
+      const samplePayload = {
+        batch_title: "SBI Regional Due Diligence Sample Audit",
+        items: [
+          {
+            case_ref: "SBI-SMP-001",
+            applicant_name: "Sri K. Satyanarayana Raju",
+            loan_amount_inr: 25000000,
+            district: "Visakhapatnam",
+            mandal: "Anandapuram",
+            village_name: "Tarluvada",
+            survey_number: "72"
+          },
+          {
+            case_ref: "SBI-SMP-002",
+            applicant_name: "Sri M. Appa Rao (D-Form Grant)",
+            loan_amount_inr: 15000000,
+            district: "Visakhapatnam",
+            mandal: "Anandapuram",
+            village_name: "Tarluvada",
+            survey_number: "81"
+          },
+          {
+            case_ref: "SBI-SMP-003",
+            applicant_name: "Speculative Plot Promoter",
+            loan_amount_inr: 10000000,
+            district: "Visakhapatnam",
+            mandal: "Anandapuram",
+            village_name: "Tarluvada",
+            survey_number: "64"
+          }
+        ]
+      };
+
+      try {
+        const res = await fetch('/api/v1/b2b/batch-underwrite', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': 'gdd_live_sbi_enterprise_991823'
+          },
+          body: JSON.stringify(samplePayload)
+        });
+
+        if (!res.ok) throw new Error('Batch query failed');
+        const job = await res.json();
+        renderBatchResults(job);
+      } catch (err) {
+        alert('Error running sample batch: ' + err.message);
+      } finally {
+        btn.classList.remove('opacity-50', 'pointer-events-none');
+      }
+    }
+
+    async function handleCsvUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('batch_title', file.name.replace('.csv', ''));
+
+      try {
+        const res = await fetch('/api/v1/b2b/batch-upload-csv', {
+          method: 'POST',
+          headers: {
+            'X-API-Key': 'gdd_live_sbi_enterprise_991823'
+          },
+          body: formData
+        });
+
+        if (!res.ok) throw new Error('CSV upload failed');
+        const job = await res.json();
+        renderBatchResults(job);
+      } catch (err) {
+        alert('Error processing CSV: ' + err.message);
+      }
+    }
+
+    function renderBatchResults(job) {
+      const card = document.getElementById('batchStatusCard');
+      card.classList.remove('hidden');
+
+      document.getElementById('batchTitleDisplay').textContent = job.batch_title;
+      document.getElementById('kpiTotal').textContent = job.total_records;
+      document.getElementById('kpiApproved').textContent = job.approved_count;
+      document.getElementById('kpiConditional').textContent = job.conditional_count;
+      document.getElementById('kpiRejected').textContent = job.rejected_count;
+      document.getElementById('kpiSanctionAmt').textContent = `INR ${job.total_recommended_sanction_inr.toLocaleString('en-IN')}`;
+      
+      const dl = document.getElementById('batchDownloadBtn');
+      dl.href = `/api/v1/b2b/batch-export/${job.batch_id}`;
+      lucide.createIcons();
     }
 
     // Demo Scenario Loader
