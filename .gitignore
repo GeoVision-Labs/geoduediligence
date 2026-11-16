@@ -49,4 +49,8 @@ final.tif
 
 # Temporary diagnostic artifacts
 *.tmp
+data/cache/
+data/sample_reports/*.png
+
+*.tmp
 *.log

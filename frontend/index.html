@@ -675,39 +675,52 @@
             const isUnauth = properties.is_unauthorized;
             const zone = properties.zone_code;
 
+            // At regional zoom levels (< 14), render subtle dots to prevent overlapping clutter
+            if (zoom < 14) {
+              return {
+                radius: 2,
+                weight: 0.5,
+                color: isProhibited ? '#EF4444' : '#3B82F6',
+                opacity: 0.6,
+                fill: true,
+                fillColor: isProhibited ? '#EF4444' : '#60A5FA',
+                fillOpacity: 0.5
+              };
+            }
+
+            // At zoom >= 14, render crisp non-overlapping parcel boundaries with subtle fill
             let strokeColor = '#3B82F6';
             let fillColor = '#60A5FA';
-            let fillOpacity = 0.35;
-            let weight = 1.2;
+            let fillOpacity = 0.08;
+            let weight = 1.0;
 
             if (isProhibited) {
-              strokeColor = '#EF4444';
+              strokeColor = '#DC2626';
               fillColor = '#F87171';
-              fillOpacity = 0.65;
-              weight = 2;
-            } else if (isUnauth) {
-              strokeColor = '#F59E0B';
-              fillColor = '#FBBF24';
-              fillOpacity = 0.45;
+              fillOpacity = 0.20;
               weight = 1.8;
+            } else if (isUnauth) {
+              strokeColor = '#D97706';
+              fillColor = '#FBBF24';
+              fillOpacity = 0.15;
+              weight = 1.4;
             } else if (zone === 'R1') {
-              strokeColor = '#10B981';
+              strokeColor = '#059669';
               fillColor = '#34D399';
-              fillOpacity = 0.35;
+              fillOpacity = 0.08;
             } else if (zone === 'M1') {
-              strokeColor = '#8B5CF6';
+              strokeColor = '#7C3AED';
               fillColor = '#A78BFA';
-              fillOpacity = 0.35;
+              fillOpacity = 0.08;
             }
 
             return {
               weight: weight,
               color: strokeColor,
-              opacity: 0.9,
+              opacity: 0.85,
               fillColor: fillColor,
               fill: true,
-              fillOpacity: fillOpacity,
-              radius: zoom >= 14 ? undefined : 3.5
+              fillOpacity: fillOpacity
             };
           },
           vmrda_zoning: function(properties) {

@@ -117,14 +117,20 @@ Land acquisition and due diligence in Andhra Pradesh—specifically within the r
   - [x] 📍 Interactive Village Centroid Hubs with click-to-load actions.
 - [x] Tabbed drill-down drawer for Zoning, Title, Layout, and Flood analysis.
 
-### ✅ Phase 4: Automated 5-Page Investor Due Diligence Report Generator *(Completed)*
-- [x] Headless PDF generation engine powered by ReportLab (`report_generator.py`).
-- [x] Dynamic page-numbering canvas with confidentiality header & footer stamps.
-- [x] **Page 1: Executive Summary & Due Diligence Scorecard** (Grade badge, risk meter, red-flag alert box, key statutory clearances).
-- [x] **Page 2: Layer 1 — VMRDA Master Plan 2041 Zoning Audit** (Permitted uses, prohibited uses, setback reservations).
-- [x] **Page 3: Layer 2 — Title, Tenure & AP MeeBhoomi Audit** (Pattadar/Anubhavadar, Khata, Section 22A prohibited check).
-- [x] **Page 4: Layer 3 — VMRDA Layout Approval Audit** (LP Number verification, unauthorized layout blacklist check, LRS status).
-- [x] **Page 5: Layer 4 — Topographical & Flood Resilience Analysis** (DEM elevation, slope, TWI, statutory water buffer clearance, legal disclaimer).
+### ✅ Phase 4: Automated 5-Page Investor Due Diligence Report Generator *(Industry-Best Edition)*
+- [x] Headless PDF generation engine powered by ReportLab (`backend/app/services/report_generator.py`).
+- [x] Dynamic two-pass `NumberedCanvas` with confidentiality running headers, footers, and page counters (`Page X of 5`).
+- [x] **Page 1: Executive Title Verdict & Investment Scorecard** (Grade badge, risk meter, red-flag alert box, key statutory clearances, 4-pillar scorecard).
+- [x] **Page 2: High-Resolution Geospatial Cadastre & Strategic Landmark Map Plate** (`backend/app/services/map_renderer.py`):
+  - [x] Embedded georeferenced OpenStreetMap contextual basemap plate at 300 DPI.
+  - [x] Highlighted target cadastral boundary with centroid coordinate callouts.
+  - [x] Surrounding strategic infrastructure **pinpoints** (NH-16 National Highway, Anandapuram Growth Junction, Gambheeram IT SEZ / IIM, Bhogapuram Airport Corridor).
+  - [x] Statutory VMRDA 2041 R-1 residential zoning corridor & 30m waterbody setback buffer overlays.
+  - [x] Cartographic legend, calibrated 500m metric scale bar, and nautical North Arrow compass rose.
+  - [x] Strategic infrastructure proximity matrix (radial distance, transit times, investment impact).
+- [x] **Page 3: Layer 1 & 2 — Statutory Zoning & AP MeeBhoomi Title Audit** (VMRDA permitted/restricted uses, Pattadar vs. Anubhavadar, Khata, Section 22A prohibited property screening).
+- [x] **Page 4: Layer 3 & 4 — Layout Approval Legitimacy & Hydrological DEM Flood Risk** (VMRDA LP check, unauthorized layout blacklist, LRS eligibility, Copernicus 30m DEM elevation, slope %, TWI, 30m stream clearance).
+- [x] **Page 5: Institutional Underwriting Sign-Off, Legal Covenants & Cryptographic Verification** (Pre-disbursement legal covenants for bank advocates, vector QR code verification stamp, SHA-256 digital fingerprint, official underwriter attestation lines).
 - [x] Instant download stream endpoint: `/api/v1/report/generate-pdf`.
 
 ### 🔄 Phase 5: Enterprise Scaling, PostGIS & External APIs *(Active In-Progress)*

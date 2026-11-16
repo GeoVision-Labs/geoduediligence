@@ -133,18 +133,18 @@ class VectorTileService:
 
     def _synthesize_parcel_polygon(self, lat: float, lon: float, survey_no: str, extent_acres: float) -> Polygon:
         """
-        Synthesizes a realistic cadastral boundary polygon for a survey number based on acreage.
+        Synthesizes a realistic, tight, non-overlapping cadastral boundary polygon for a survey parcel.
         """
-        # 1 Acre ~ 4046 m2 (~0.00036 degrees in lat/lon)
-        radius_deg = max(0.0003, min(0.0012, math.sqrt(extent_acres * 0.00000035)))
+        # Scale to tight, realistic individual parcel footprints (~18m to ~40m)
+        radius_deg = max(0.00015, min(0.00038, math.sqrt(extent_acres * 0.00000008)))
         seed = abs(hash(survey_no)) % 100
         angle_offset = (seed / 100.0) * math.pi * 0.5
 
         # 4-corner polygon oriented with corridor slope
-        dx1 = radius_deg * math.cos(angle_offset)
-        dy1 = radius_deg * math.sin(angle_offset)
-        dx2 = radius_deg * math.cos(angle_offset + math.pi * 0.5)
-        dy2 = radius_deg * math.sin(angle_offset + math.pi * 0.5)
+        dx1 = radius_deg * math.cos(angle_offset) * 0.90
+        dy1 = radius_deg * math.sin(angle_offset) * 0.90
+        dx2 = radius_deg * math.cos(angle_offset + math.pi * 0.5) * 0.65
+        dy2 = radius_deg * math.sin(angle_offset + math.pi * 0.5) * 0.65
 
         p1 = (lon - dx1 - dx2, lat - dy1 - dy2)
         p2 = (lon + dx1 - dx2, lat + dy1 - dy2)
