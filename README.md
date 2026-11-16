@@ -5,7 +5,7 @@
 **Target Jurisdiction:** Visakhapatnam Metropolitan Region Development Authority (VMRDA) — Master Plan 2041  
 **Regional Coverage:** 7,328 km² across Visakhapatnam, Vizianagaram, and Anakapalli Districts
 
-[![Version](https://img.shields.io/badge/version-v0.4.0--beta-blue.svg)](https://github.com/GeoVision-Labs/geoduediligence)
+[![Version](https://img.shields.io/badge/version-v0.5.0--beta-blue.svg)](https://github.com/GeoVision-Labs/geoduediligence)
 [![Current Phase](https://img.shields.io/badge/Current%20Phase-Phase%205%20Regional%20Active-success.svg)](https://github.com/GeoVision-Labs/geoduediligence)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI%200.110-009688.svg)](https://fastapi.tiangolo.com)
 [![Leaflet](https://img.shields.io/badge/GIS-Leaflet%201.9-199900.svg)](https://leafletjs.com)
@@ -36,11 +36,12 @@ Land acquisition and due diligence in Andhra Pradesh—specifically within the r
 
 | Metric | Details |
 | :--- | :--- |
-| **Current Version** | **`v0.4.0-beta`** |
+| **Current Version** | **`v0.5.0-beta`** |
 | **Active Milestone** | **Phase 5 Regional Expansion Active — Full 7,328 km² VMRDA Jurisdiction Verified** |
 | **Regional Coverage** | **100% of VMRDA 2041 Jurisdiction** (12,827 km² gross extent, 7,328 km² notified territory across 3 districts) |
 | **Official Map Sheets** | **6 Sheets (`p1.tif` to `p6.tif`) + Unified Stitched Regional Mosaic (`final.tif` at 54,000 × 20,700 px)** |
 | **Title Audit Engine** | **Live AP MeeBhoomi Headless Scraper Daemon with Self-Contained OCR & 14-day Multi-Tier Caching** |
+| **Enterprise Underwriting** | **Dedicated B2B REST API & HMAC-SHA256 Webhook Suite for Banks, HFCs & CREDAI** |
 | **Core Corridors** | Atchutapuram SEZ (Anakapalli), Bhogapuram International Airport (Vizianagaram), Turluvada IT/Google DC Corridor, Visakhapatnam Metropolitan Urban Core |
 
 ### 📊 Spatial & Mathematical Proof of 7,328 km² Coverage
@@ -139,8 +140,16 @@ Land acquisition and due diligence in Andhra Pradesh—specifically within the r
   - [x] **Resilient Async Client (`client.py`):** ASP.NET WebForms session negotiation, ViewState extraction, and configurable timeout/retry handling.
   - [x] **Autonomous Scraper Daemon (`daemon.py`):** 3-tier resolution hierarchy (`LIVE_SCRAPER` $\rightarrow$ `CACHE_HIT` $\rightarrow$ `BASELINE_FALLBACK`), 14-day Redis/In-Memory TTL caching, and zero-downtime deterministic fallbacks.
   - [x] **Test & Benchmark Suite (`scripts/test_meebhoomi_scraper.py`):** 10 automated test suites passing with 100% accuracy.
+- [x] **Dedicated B2B Underwriting REST API & Webhook Suite (`backend/app/api/b2b_routes.py`):**
+  - [x] **Institutional API Key Authentication (`security.py`):** Tiered key authorization (`X-API-Key` / Bearer token) for Banks (SBI), HFCs (HDFC, LIC HFL), and CREDAI developers.
+  - [x] **Sliding-Window Rate Limiting:** Per-minute and daily quota controls returning standard telemetry headers (`X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Daily-Quota`).
+  - [x] **Automated Statutory Credit Decisioning:** Categorizes applications into `APPROVAL_RECOMMENDED` (75% LTV), `CONDITIONAL_SANCTION` (50% LTV), and `REJECTION_MANDATED` (0% LTV).
+  - [x] **Pre-Disbursement Legal & Technical Covenants:** Actionable conditions for bank empanelled advocates (road widening gift deeds, partition deeds, NALA conversion receipts).
+  - [x] **High-Volume Batch Portfolio Processing:** JSON array and multipart CSV file upload for auditing up to 500 parcels per batch with background task execution.
+  - [x] **CSV Audit Export:** Downloadable spreadsheet with risk scores, Section 22A flags, and public certificate verification URLs.
+  - [x] **HMAC-SHA256 Signed Webhooks:** Asynchronous event notifications (`X-GDD-Signature`) dispatched on underwriting completion.
+  - [x] **Test Suite (`scripts/test_b2b_underwriting.py`):** 10 automated unit and integration tests passing.
 - [ ] Direct PMTiles / vector tile serving (`pg_tileserv`) for sub-second parcel rendering.
-- [ ] Dedicated B2B Underwriting REST API for Banks, Housing Finance Companies (HFCs), and CREDAI developers.
 
 ---
 
