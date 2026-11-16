@@ -28,7 +28,9 @@ class RiskAssessmentEngine:
         
         # 1. Spatial & Zoning Query
         survey_rec = self.spatial_engine.get_survey_record(v_name, s_no)
-        zoning_data = self.spatial_engine.query_zoning(v_name, s_no)
+        zoning_data = self.spatial_engine.query_zoning(
+            v_name, s_no, district=query.district, mandal=query.mandal or "Anandapuram"
+        )
         
         lat = survey_rec["latitude"] if survey_rec else 17.8920
         lon = survey_rec["longitude"] if survey_rec else 83.3950
@@ -123,7 +125,7 @@ class RiskAssessmentEngine:
                 "village_name": v_name,
                 "survey_number": s_no,
                 "purpose": query.purpose,
-                "pdf_part_reference": "VMR Master Plan 2041 (Map 4 - Visakhapatnam North/East Growth Corridor)"
+                "pdf_part_reference": zoning_data.get("master_plan_reference", "VMR Master Plan 2041 (Full 7,328 km² Jurisdiction)")
             },
             overall_risk_score=composite_score,
             overall_risk_grade=grade,
