@@ -1,0 +1,73 @@
+services:
+  # ============================================================================
+  # 1. PostGIS Spatial Database (PostgreSQL 16 + PostGIS 3.4)
+  # ============================================================================
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: geoduediligence-postgis
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: geoduediligence
+      POSTGRES_USER: geouser
+      POSTGRES_PASSWORD: geopass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./scripts/init_postgis.sql:/docker-entrypoint-initdb.d/01_init_postgis.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U geouser -d geoduediligence"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - geonet
+
+  # ============================================================================
+  # 2. Redis Caching & Asynchronous Queue
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: geoduediligence-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    networks:
+      - geonet
+
+  # ============================================================================
+  # 3. GeoDueDiligence API & Interactive Workstation
+  # ============================================================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: geoduediligence-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://geouser:geopass@db:5432/geoduediligence
+      REDIS_URL: redis://redis:6379/0
+      PORT: 8000
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./data/sample_reports:/app/data/sample_reports
+    networks:
+      - geonet
+
+volumes:
+  pgdata:
+    driver: local
+  redisdata:
+    driver: local
+
+networks:
+  geonet:
+    driver: bridge

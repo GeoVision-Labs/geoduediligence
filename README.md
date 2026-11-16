@@ -129,7 +129,9 @@ Land acquisition and due diligence in Andhra Pradesh—specifically within the r
 - [x] Ingested and published official Master Plan regulatory Parts 1 and 6 PDFs.
 - [x] **Tamper-Proof Cryptographic Verification Stamp:** Dynamic vector QR Code & 64-character `SHA-256` digital digest embedded on Page 5 of every generated PDF report.
 - [x] **Public Document Verification Certificate:** Web endpoint (`/verify/{hash}`) and banking API endpoint (`/api/v1/verify-report/{hash}`) for instant tamper auditing.
-- [ ] Enterprise PostgreSQL 16 + PostGIS spatial database migration.
+- [x] **PostgreSQL 16 + PostGIS 3.4 Spatial Database:** Production spatial schema (`scripts/init_postgis.sql`) with `GIST` indexing on `cadastral_parcels` and `vmrda_zoning_2041`.
+- [x] **Production Docker Compose Stack:** Containerized deployment orchestrating PostGIS, Redis caching, and FastAPI backend (`Dockerfile`, `docker-compose.yml`).
+- [x] **PostGIS Data Migration & Seeder:** Automated batch migration pipeline (`scripts/migrate_to_postgis.py`) for regional parcel ingestion.
 - [ ] Direct PMTiles / vector tile serving (`pg_tileserv`) for sub-second parcel rendering.
 - [ ] Automated headless browser scraper daemon with proxy rotation for real-time MeeBhoomi Adangal downloads.
 - [ ] Dedicated B2B Underwriting REST API for Banks, Housing Finance Companies (HFCs), and CREDAI developers.
@@ -224,6 +226,20 @@ python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
 python scripts/test_pipeline.py
 ```
 *Executes automated due diligence audits on sample parcels (Tarluvada 72, 81, and 64) and builds a test 5-page PDF in `data/sample_reports/`.*
+
+### Running with Docker Compose (PostGIS + Redis + FastAPI)
+```bash
+# 1. Start PostGIS 16, Redis, and FastAPI API in isolated containers
+docker compose up -d
+
+# 2. Check health status of all containers
+docker compose ps
+
+# 3. Seed PostGIS with 33,322 regional cadastral parcels
+python scripts/migrate_to_postgis.py
+```
+* The PostGIS spatial database is accessible at `localhost:5432` (`geouser:geopass`).
+* The Web Workstation and API are accessible at `http://localhost:8000`.
 
 ---
 

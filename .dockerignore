@@ -1,0 +1,26 @@
+# Git
+.git/
+.gitignore
+
+# Large local raster files (final.tif is 188MB, p*.tif are 20-80MB)
+*.tif
+*.tiff
+final.tif
+p*.tif
+
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+
+# Diagnostic files
+*.png
+*.tmp
+*.log
+
+# IDE
+.vscode/
+.idea/
