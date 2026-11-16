@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from .api.routes import router as api_router, public_router
 from .api.b2b_routes import router as b2b_router
+from .api.tile_routes import router as tile_router
 
 app = FastAPI(
     title="GeoDueDiligence API",
@@ -32,10 +33,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include Core API, Public Verification, and B2B Institutional Underwriting routes
+# Include Core API, Public Verification, B2B Institutional Underwriting, and Vector Tile routes
 app.include_router(api_router)
 app.include_router(public_router)
 app.include_router(b2b_router)
+app.include_router(tile_router)
 
 # Mount Frontend static directory
 frontend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "frontend")

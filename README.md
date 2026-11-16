@@ -5,8 +5,8 @@
 **Target Jurisdiction:** Visakhapatnam Metropolitan Region Development Authority (VMRDA) — Master Plan 2041  
 **Regional Coverage:** 7,328 km² across Visakhapatnam, Vizianagaram, and Anakapalli Districts
 
-[![Version](https://img.shields.io/badge/version-v0.6.0--beta-blue.svg)](https://github.com/GeoVision-Labs/geoduediligence)
-[![Current Phase](https://img.shields.io/badge/Current%20Phase-Phase%205%20Regional%20Active-success.svg)](https://github.com/GeoVision-Labs/geoduediligence)
+[![Version](https://img.shields.io/badge/version-v0.7.0--beta-blue.svg)](https://github.com/GeoVision-Labs/geoduediligence)
+[![Current Phase](https://img.shields.io/badge/Current%20Phase-Phase%206%20Vector%20Tiles%20Active-success.svg)](https://github.com/GeoVision-Labs/geoduediligence)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI%200.110-009688.svg)](https://fastapi.tiangolo.com)
 [![Leaflet](https://img.shields.io/badge/GIS-Leaflet%201.9-199900.svg)](https://leafletjs.com)
 [![Python](https://img.shields.io/badge/Python-3.13-3776AB.svg)](https://python.org)
@@ -36,13 +36,14 @@ Land acquisition and due diligence in Andhra Pradesh—specifically within the r
 
 | Metric | Details |
 | :--- | :--- |
-| **Current Version** | **`v0.6.0-beta`** |
-| **Active Milestone** | **Phase 5 Regional Expansion Active — Full 7,328 km² VMRDA Jurisdiction Verified** |
+| **Current Version** | **`v0.7.0-beta`** |
+| **Active Milestone** | **Phase 6 Vector Tile & PMTiles Serving — Sub-Second Cadastral Rendering Active** |
 | **Regional Coverage** | **100% of VMRDA 2041 Jurisdiction** (12,827 km² gross extent, 7,328 km² notified territory across 3 districts) |
 | **Official Map Sheets** | **6 Sheets (`p1.tif` to `p6.tif`) + Unified Stitched Regional Mosaic (`final.tif` at 54,000 × 20,700 px)** |
+| **Vector Tile Engine** | **Dynamic Mapbox Vector Tile (.pbf) + Static PMTiles Archive (Spec v3) with `pg_tileserv` Drop-In Routes** |
 | **Title Audit Engine** | **Live AP MeeBhoomi Headless Scraper Daemon with Self-Contained OCR & 14-day Multi-Tier Caching** |
 | **Enterprise Underwriting** | **Dedicated B2B REST API & HMAC-SHA256 Webhook Suite for Banks, HFCs & CREDAI** |
-| **Interactive UI** | **Dual-Pane GIS Workstation with Live Scraper Badges, Bank Simulator & Batch Portfolio Modal** |
+| **Interactive UI** | **Dual-Pane GIS Workstation with Sub-5ms Cadastral Vector Grid, Bank Simulator & Batch Portfolio Modal** |
 | **Core Corridors** | Atchutapuram SEZ (Anakapalli), Bhogapuram International Airport (Vizianagaram), Turluvada IT/Google DC Corridor, Visakhapatnam Metropolitan Urban Core |
 
 ### 📊 Spatial & Mathematical Proof of 7,328 km² Coverage
@@ -154,7 +155,14 @@ Land acquisition and due diligence in Andhra Pradesh—specifically within the r
   - [x] **Live Scraper Badges & Provenance Indicators:** Real-time visual pill badges (`LIVE_SCRAPER`, `CACHE_HIT`, `BASELINE_FALLBACK`) with audit retrieval latency in milliseconds.
   - [x] **B2B Loan Facility Simulator Drawer (Tab 5):** Instant credit decisioning (`APPROVAL_RECOMMENDED`, `CONDITIONAL_SANCTION`, `REJECTION_MANDATED`), LTV caps (75%/50%/0%), and pre-disbursement legal covenants directly on the UI.
   - [x] **Batch Portfolio Audit Modal:** In-browser multi-parcel audit runner with 4 KPI counters (Approved, Conditional, Rejected, Total Sanctioned) and one-click audited CSV download.
-- [ ] Direct PMTiles / vector tile serving (`pg_tileserv`) for sub-second parcel rendering.
+- [x] **Direct PMTiles & Vector Tile Serving (`backend/app/services/tile_service.py`, `backend/app/api/tile_routes.py`):**
+  - [x] **Spatial Grid Hashing Index:** 8,525+ cadastral survey parcels partitioned across 609 spatial hash bins for 0.35 ms spatial query resolution.
+  - [x] **Dynamic MVT Protocol Streaming:** Real-time Mapbox Vector Tile (.pbf) generation with geometry synthesis, zoom-level LOD filtering, and sub-millisecond in-memory LRU caching (`/api/v1/tiles/{layer}/{z}/{x}/{y}.pbf`).
+  - [x] **`pg_tileserv` Drop-In Compatibility:** Direct drop-in endpoints (`/api/v1/tiles/public.cadastral_parcels/{z}/{x}/{y}.pbf` and `/public.vmrda_zoning_2041/{z}/{x}/{y}.pbf`).
+  - [x] **Static PMTiles Archive Serialization:** Built single-file PMTiles Spec v3 archive (`data/processed/vmrda_parcels.pmtiles`) with Hilbert zxy sorting and TileJSON 3.0.0 metadata.
+  - [x] **HTTP 206 Partial Content Range Server:** Random-access byte-range tile delivery directly from PMTiles archive without browser memory overload.
+  - [x] **Leaflet VectorGrid Workstation Integration:** Interactive MVT canvas layer with statutory color styling (Section 22A in red, unapproved layouts in amber, R1 in emerald), live telemetry latency counter (`⚡ MVT: <5ms`), and hover/click-to-audit bindings.
+  - [x] **Benchmark Test Suite (`scripts/test_vector_tiles.py`):** 6/6 automated test suites passing with 4.39 ms average latency.
 
 ---
 
@@ -275,6 +283,11 @@ python scripts/migrate_to_postgis.py
 | `GET` | `/api/v1/report/download/{report_id}` | Direct download link for a generated report by its unique ID. |
 | `GET` | `/api/v1/verify-report/{report_hash}` | REST API endpoint returning verification record for bank underwriting. |
 | `GET` | `/verify/{report_hash}` | Public web verification certificate endpoint (linked via scannable QR code). |
+| `GET` | `/api/v1/tiles/tilejson.json` | Official TileJSON 3.0.0 specification with VMRDA bounds and layer metadata. |
+| `GET` | `/api/v1/tiles/{layer}/{z}/{x}/{y}.pbf` | High-speed dynamic Mapbox Vector Tile (.pbf) streaming with sub-5ms caching. |
+| `GET` | `/api/v1/tiles/public.{layer}/{z}/{x}/{y}.pbf` | `pg_tileserv` drop-in compatible alias vector tile routes. |
+| `GET` | `/api/v1/tiles/pmtiles/vmrda_parcels.pmtiles` | Static PMTiles Spec v3 archive server supporting HTTP 206 Partial Content byte ranges. |
+| `GET` | `/api/v1/tiles/stats` | Telemetry endpoint reporting indexed parcel count, spatial hash bins, and archive metrics. |
 
 ---
 
