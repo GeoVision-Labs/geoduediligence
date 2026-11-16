@@ -116,6 +116,12 @@ class RiskAssessmentEngine:
 
         report_uuid = f"GDD-{datetime.utcnow().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
         
+        # Cryptographic SHA-256 Digital Signature
+        raw_signature = f"{report_uuid}|{query.district}|{query.mandal}|{v_name}|{s_no}|{composite_score}|{grade}|{title_data['pattadar_name']}|{title_data['section_22a_prohibited']}|{zoning_data['zone_code']}"
+        import hashlib
+        report_hash = hashlib.sha256(raw_signature.encode('utf-8')).hexdigest()
+        verification_url = f"http://127.0.0.1:8000/verify/{report_hash}"
+        
         return DueDiligenceResult(
             report_id=report_uuid,
             generated_at=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
@@ -137,5 +143,7 @@ class RiskAssessmentEngine:
             layout=LayoutLegitimacyDetails(**layout_data),
             terrain_flood=FloodTerrainDetails(**flood_data),
             coordinates={"latitude": lat, "longitude": lon},
-            summary_verdict=verdict
+            summary_verdict=verdict,
+            report_hash=report_hash,
+            verification_url=verification_url
         )

@@ -59,11 +59,13 @@ def test_pipeline():
     print(f"Layout: {res3.layout.layout_status} (Is Unauthorized: {res3.layout.is_unauthorized_list})")
     
     # Generate 5-Page PDF for Case 1
-    print("\nGenerating 5-Page PDF Report for Case 1...")
+    print("\nGenerating 5-Page PDF Report for Case 1 with QR Code & SHA-256 Digest...")
     pdf_gen = DueDiligenceReportGenerator()
     pdf_path = pdf_gen.generate_pdf(res1)
     print(f"PDF successfully generated at: {pdf_path}")
     print(f"File size: {os.path.getsize(pdf_path)} bytes")
+    print(f"Digital SHA-256 Digest: {res1.report_hash}")
+    print(f"Public Verification URL: {res1.verification_url}")
 
 if __name__ == "__main__":
     test_pipeline()

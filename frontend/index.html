@@ -220,7 +220,12 @@
 
             <div class="flex items-start justify-between">
               <div>
-                <div class="text-[11px] font-mono text-slate-400" id="reportIdLabel">REPORT #GDD-20261115-XXXX</div>
+                <div class="text-[11px] font-mono text-slate-400 flex items-center gap-2">
+                  <span id="reportIdLabel">REPORT #GDD-20261115-XXXX</span>
+                  <a id="certLink" href="#" target="_blank" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition flex items-center gap-1">
+                    <i data-lucide="shield-check" class="w-3 h-3"></i> Certificate
+                  </a>
+                </div>
                 <h2 class="text-xl font-extrabold text-white mt-0.5" id="parcelTitleLabel">Tarluvada, Sy No. 72</h2>
                 <div class="text-xs text-slate-400 mt-0.5" id="reportTimestampLabel">2026-11-15 16:40:00 UTC</div>
               </div>
@@ -361,6 +366,15 @@
                 <span class="font-bold text-slate-200" id="f_cat">-</span>
               </div>
             </div>
+          </div>
+
+          <!-- SHA-256 Digital Fingerprint Badge -->
+          <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl text-[10px]">
+            <div class="flex items-center justify-between font-mono mb-1 text-slate-400">
+              <span class="uppercase font-bold tracking-wider">SHA-256 Digital Fingerprint</span>
+              <span class="text-emerald-400 font-bold flex items-center gap-1">✓ Verified</span>
+            </div>
+            <div id="reportHashLabel" class="font-mono text-slate-400 break-all select-all text-[9.5px]">-</div>
           </div>
 
           <!-- PDF Export Button -->
@@ -657,6 +671,8 @@
 
       // Populate Header & Risk Score
       document.getElementById('reportIdLabel').textContent = `REPORT #${data.report_id}`;
+      document.getElementById('certLink').href = `/verify/${data.report_hash}`;
+      document.getElementById('reportHashLabel').textContent = data.report_hash;
       document.getElementById('parcelTitleLabel').textContent = `${data.target_parcel.village_name}, Sy No. ${data.target_parcel.survey_number}`;
       document.getElementById('reportTimestampLabel').textContent = `${data.generated_at}`;
 

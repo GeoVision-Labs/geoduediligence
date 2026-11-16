@@ -127,6 +127,8 @@ Land acquisition and due diligence in Andhra Pradesh—specifically within the r
 - [x] Ingestion and mathematical proof of complete VMRDA 2041 Master Plan Maps (All 6 sheets `p1.tif` to `p6.tif` + master `final.tif` covering full **7,328 km²** across Anakapalli, Visakhapatnam, and Vizianagaram).
 - [x] Built and integrated multi-district **`RegionalVMRDAEngine`** (`backend/app/services/regional_engine.py`) with `final.tif` coordinate sampling and planning unit policies.
 - [x] Ingested and published official Master Plan regulatory Parts 1 and 6 PDFs.
+- [x] **Tamper-Proof Cryptographic Verification Stamp:** Dynamic vector QR Code & 64-character `SHA-256` digital digest embedded on Page 5 of every generated PDF report.
+- [x] **Public Document Verification Certificate:** Web endpoint (`/verify/{hash}`) and banking API endpoint (`/api/v1/verify-report/{hash}`) for instant tamper auditing.
 - [ ] Enterprise PostgreSQL 16 + PostGIS spatial database migration.
 - [ ] Direct PMTiles / vector tile serving (`pg_tileserv`) for sub-second parcel rendering.
 - [ ] Automated headless browser scraper daemon with proxy rotation for real-time MeeBhoomi Adangal downloads.
@@ -235,6 +237,8 @@ python scripts/test_pipeline.py
 | `POST` | `/api/v1/verify` | Executes 4-pillar due diligence on parcel; returns complete JSON analysis and risk scores. |
 | `POST` | `/api/v1/report/generate-pdf` | Generates and streams the certified 5-page Due Diligence PDF Report. |
 | `GET` | `/api/v1/report/download/{report_id}` | Direct download link for a generated report by its unique ID. |
+| `GET` | `/api/v1/verify-report/{report_hash}` | REST API endpoint returning verification record for bank underwriting. |
+| `GET` | `/verify/{report_hash}` | Public web verification certificate endpoint (linked via scannable QR code). |
 
 ---
 

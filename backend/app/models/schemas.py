@@ -66,3 +66,5 @@ class DueDiligenceResult(BaseModel):
     terrain_flood: FloodTerrainDetails
     coordinates: Dict[str, float]
     summary_verdict: str
+    report_hash: str = Field(..., description="Cryptographic SHA-256 digest of the audit payload")
+    verification_url: str = Field(..., description="Public digital certificate verification URL")
